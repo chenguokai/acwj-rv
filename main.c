@@ -50,7 +50,7 @@ static char *do_compile(char *filename) {
   }
 
   // Generate the pre-processor command
-  snprintf(cmd, TEXTLEN, "%s %s %s", CPPCMD, INCDIR, filename);
+  snprintf(cmd, TEXTLEN, "%s%s %s", CPPCMD, INCDIR, filename);
 
   // Open up the pre-processor pipe
   if ((Infile = popen(cmd, "r")) == NULL) {

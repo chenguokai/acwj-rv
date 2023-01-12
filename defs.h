@@ -15,7 +15,7 @@ enum {
 #define AOUT "a.out"
 #define ASCMD "as -g -o "
 #define LDCMD "cc -g -o "
-#define CPPCMD "cpp -nostdinc -isystem "
+#define CPPCMD "cpp -nostdinc -isystem"
 
 // Token types
 enum {
