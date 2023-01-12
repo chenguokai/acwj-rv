@@ -1,0 +1,7 @@
+*.dSYM
+*.o
+*.swp
+*.s
+cwj
+cwjrv
+cwjarm
