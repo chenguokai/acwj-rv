@@ -109,13 +109,13 @@ static char *dreglist[] =
 
 // Push and pop a register on/off the stack
 static void pushreg(int r) {
-  fprintf(Outfile, "\taddi sp, sp, -4\n", reglist[r]);
+  fprintf(Outfile, "\taddi sp, sp, -8\n");
   fprintf(Outfile, "\tsd\t%s, 0(sp)\n", reglist[r]);
 }
 
 static void popreg(int r) {
   fprintf(Outfile, "\tld\t%s, 0(sp)\n", reglist[r]);
-  fprintf(Outfile, "\taddi sp, sp, 4\t%s\n", reglist[r]);
+  fprintf(Outfile, "\taddi sp, sp, 8\n");
 }
 
 
@@ -371,7 +371,7 @@ int cgloadvar(struct symtable *sym, int op) {
     case 8:
       fprintf(Outfile, "\tld\t%s, (%s)\n", reglist[resreg], reglist[postreg]);
     }
-    fprintf(Outfile, "\taddi\t$%s, %s, %d\n", reglist[resreg], reglist[resreg], offset * sym->size);
+    fprintf(Outfile, "\taddi\t%s, %s, %d\n", reglist[resreg], reglist[resreg], offset * sym->size);
     fprintf(Outfile, "\tsd\t%s, (%s)\n", reglist[resreg], reglist[postreg]);
 
     // Finally, free the register
@@ -511,7 +511,7 @@ int cgcall(struct symtable *sym, int numargs) {
   int outr;
 
   // Call the function
-  fprintf(Outfile, "\tcall\t%s@PLT\n", sym->name);
+  fprintf(Outfile, "\tcall\t%s@plt\n", sym->name);
 
   // Remove any arguments pushed on the stack
   if (numargs > REG_PARM_NUM)
@@ -730,10 +730,10 @@ int cgcompare_and_jump(int ASTop, int r1, int r2, int label, int type) {
 
   switch (size) {
   case 1:
-    fprintf(Outfile, "\taddi sp, sp, -8\n" "\tsd %s, (sp)\n" "\tlb %s, (sp)\n" "\tsd %s, (sp)\n" "\tlb %s, (sp)\n" "addi sp, sp, 8\n", reglist[r1], reglist[r1], reglist[r2], reglist[r2]);
+    fprintf(Outfile, "\taddi sp, sp, -8\n" "\tsd %s, (sp)\n" "\tlb %s, (sp)\n" "\tsd %s, (sp)\n" "\tlb %s, (sp)\n" "\taddi sp, sp, 8\n", reglist[r1], reglist[r1], reglist[r2], reglist[r2]);
     break;
   case 4:
-    fprintf(Outfile, "\taddi sp, sp, -8\n" "\tsd %s, (sp)\n" "\tlw %s, (sp)\n" "\tsd %s, (sp)\n" "\tlw %s, (sp)\n" "addi sp, sp, 8\n", reglist[r1], reglist[r1], reglist[r2], reglist[r2]);
+    fprintf(Outfile, "\taddi sp, sp, -8\n" "\tsd %s, (sp)\n" "\tlw %s, (sp)\n" "\tsd %s, (sp)\n" "\tlw %s, (sp)\n" "\taddi sp, sp, 8\n", reglist[r1], reglist[r1], reglist[r2], reglist[r2]);
     break;
   default:
     break;
