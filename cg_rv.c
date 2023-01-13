@@ -205,28 +205,36 @@ void cgpreamble(char *filename) {
   fputc('\n', Outfile);
   fprintf(Outfile,
 	  "# internal switch(expr) routine\n"
-	  "# %%rsi = switch table, %%rax = expr\n"
-	  "# from SubC: http://www.t3x.org/subc/\n"
+	  "# a1 = switch table, a0 = expr\n"
 	  "\n"
 	  "__switch:\n"
-	  "        pushq   %%rsi\n"
-	  "        movq    %%rdx, %%rsi\n"
-	  "        movq    %%rax, %%rbx\n"
-	  "        cld\n"
-	  "        lodsq\n"
-	  "        movq    %%rax, %%rcx\n"
+	  "        addi sp, sp, -32\n"
+	  "        sd a3, 0(sp)\n"
+    "        sd a4, 8(sp)\n" /* current iteration */
+    "        sd a5, 16(sp)\n" /* taken target address */
+    "        sd a6, 24(sp)\n" /* current compare value */
+	  "        ld a3, 0(a1)\n" /* iteration count */
+    "        li a4, 0\n"
+    "        addi a1, a1, 8\n"
 	  "__next:\n"
-	  "        lodsq\n"
-	  "        movq    %%rax, %%rdx\n"
-	  "        lodsq\n"
-	  "        cmpq    %%rdx, %%rbx\n"
-	  "        jnz     __no\n"
-	  "        popq    %%rsi\n"
-	  "        jmp     *%%rax\n"
+	  "        ld a6, 0(a1)\n"
+    "        ld a5, 8(a1)\n"
+	  "        bne a6, a0, __no\n"
+	  "        add a0, a5, zero\n"
+    "        ld a6, 24(sp)\n"
+    "        ld a5, 16(sp)\n"
+    "        ld a4, 8(sp)\n"
+    "        ld a3, 0(sp)\n"
+	  "        jr     a0\n"
 	  "__no:\n"
-	  "        loop    __next\n"
-	  "        lodsq\n"
-	  "        popq    %%rsi\n" "        jmp     *%%rax\n\n");
+	  "        addi a1, a1, 16\n"
+    "        addi a4, a4, 1\n"
+    "        blt a3, a4, __next\n"
+    "        ld a6, 24(sp)\n"
+    "        ld a5, 16(sp)\n"
+    "        ld a4, 8(sp)\n"
+    "        ld a3, 0(sp)\n"
+    "        ret\n");
 }
 
 // Nothing to do for the end of a file
@@ -675,16 +683,16 @@ int cgcompare_and_set(int ASTop, int r1, int r2, int type) {
 
   switch (size) {
   case 1:
-    fprintf(Outfile, "\tslli\t%s, %s, 56\n", breglist[r1], breglist[r1]);
-    fprintf(Outfile, "\tsrli\t%s, %s, 56\n", breglist[r1], breglist[r1]);
-    fprintf(Outfile, "\tslli\t%s, %s, 56\n", breglist[r2], breglist[r2]);
-    fprintf(Outfile, "\tsrli\t%s, %s, 56\n", breglist[r2], breglist[r2]);
+    fprintf(Outfile, "\tslli\t%s, %s, 56\n", reglist[r1], reglist[r1]);
+    fprintf(Outfile, "\tsrli\t%s, %s, 56\n", reglist[r1], reglist[r1]);
+    fprintf(Outfile, "\tslli\t%s, %s, 56\n", reglist[r2], reglist[r2]);
+    fprintf(Outfile, "\tsrli\t%s, %s, 56\n", reglist[r2], reglist[r2]);
     break;
   case 4:
-    fprintf(Outfile, "\tslli\t%s, %s, 32\n", breglist[r1], breglist[r1]);
-    fprintf(Outfile, "\tsrli\t%s, %s, 32\n", breglist[r1], breglist[r1]);
-    fprintf(Outfile, "\tslli\t%s, %s, 32\n", breglist[r2], breglist[r2]);
-    fprintf(Outfile, "\tsrli\t%s, %s, 32\n", breglist[r2], breglist[r2]);
+    fprintf(Outfile, "\tslli\t%s, %s, 32\n", reglist[r1], reglist[r1]);
+    fprintf(Outfile, "\tsrli\t%s, %s, 32\n", reglist[r1], reglist[r1]);
+    fprintf(Outfile, "\tslli\t%s, %s, 32\n", reglist[r2], reglist[r2]);
+    fprintf(Outfile, "\tsrli\t%s, %s, 32\n", reglist[r2], reglist[r2]);
     break;
   default:
     break;
@@ -722,10 +730,10 @@ int cgcompare_and_jump(int ASTop, int r1, int r2, int label, int type) {
 
   switch (size) {
   case 1:
-    fprintf(Outfile, "\tcmpb\t%s, %s\n", breglist[r2], breglist[r1]);
+    fprintf(Outfile, "\taddi sp, sp, -8\n" "\tsd %s, (sp)\n" "\tlb %s, (sp)\n" "\tsd %s, (sp)\n" "\tlb %s, (sp)\n" "addi sp, sp, 8\n", reglist[r1], reglist[r1], reglist[r2], reglist[r2]);
     break;
   case 4:
-    fprintf(Outfile, "\tcmpl\t%s, %s\n", dreglist[r2], dreglist[r1]);
+    fprintf(Outfile, "\taddi sp, sp, -8\n" "\tsd %s, (sp)\n" "\tlw %s, (sp)\n" "\tsd %s, (sp)\n" "\tlw %s, (sp)\n" "addi sp, sp, 8\n", reglist[r1], reglist[r1], reglist[r2], reglist[r2]);
     break;
   default:
     break;
@@ -733,7 +741,7 @@ int cgcompare_and_jump(int ASTop, int r1, int r2, int label, int type) {
     // fprintf(Outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
   }
 
-  fprintf(Outfile, "\t%s\tL%d\n", invcmplist[ASTop - A_EQ], label);
+  fprintf(Outfile, "\t%s %s, %s, \tL%d\n", invcmplist[ASTop - A_EQ], reglist[r1], reglist[r2], label);
   cgfreereg(r1);
   cgfreereg(r2);
   return (NOREG);
