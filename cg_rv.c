@@ -255,7 +255,7 @@ void cgfuncpreamble(struct symtable *sym) {
 
   // Output the function start, save the %rsp and %rsp
   if (sym->class == C_GLOBAL)
-    fprintf(Outfile, "\t.globl\t%s\n" "\t.type\t%s, @function\n", name, name);
+    fprintf(Outfile, "\t.text\n" "\t.balign 16, 0\n" "\t.globl\t%s\n" "\t.type\t%s, @function\n", name, name);
   fprintf(Outfile, "%s:\n" "\taddi sp, sp, -16\n" "\tsd fp, 8(sp)\n" "\tsd ra, 0(sp)\n" "\tadd fp, sp, zero\n", name);
 
   // Copy any in-register parameters to the stack, up to six of them
@@ -342,7 +342,17 @@ int cgloadvar(struct symtable *sym, int op) {
   // If we have a pre-operation
   if (op == A_PREINC || op == A_PREDEC) {
     // change the value
-    fprintf(Outfile, "\taddi\t%s, %s, %d\n", reglist[r], reglist[r], offset * sym->size);
+    fprintf(Outfile, "\taddi\t%s, %s, %d\n", reglist[r], reglist[r], offset);
+    switch (sym->size) {
+    case 1:
+      fprintf(Outfile, "\tsb\t%s, (%s)\n", reglist[r], reglist[tmpreg]);
+      break;
+    case 4:
+      fprintf(Outfile, "\tsw\t%s, (%s)\n", reglist[r], reglist[tmpreg]);
+      break;
+    case 8:
+      fprintf(Outfile, "\tsd\t%s, (%s)\n", reglist[r], reglist[tmpreg]);
+    }
   }
   cgfreereg(tmpreg);
 
@@ -369,7 +379,7 @@ int cgloadvar(struct symtable *sym, int op) {
     case 8:
       fprintf(Outfile, "\tld\t%s, (%s)\n", reglist[resreg], reglist[postreg]);
     }
-    fprintf(Outfile, "\taddi\t%s, %s, %d\n", reglist[resreg], reglist[resreg], offset * sym->size);
+    fprintf(Outfile, "\taddi\t%s, %s, %d\n", reglist[resreg], reglist[resreg], offset);
     switch (sym->size) {
     case 1:
       fprintf(Outfile, "\tsb\t%s, (%s)\n", reglist[resreg], reglist[postreg]);
@@ -489,7 +499,7 @@ int cglognot(int r) {
 // Load a boolean value (only 0 or 1)
 // into the given register
 void cgloadboolean(int r, int val) {
-  fprintf(Outfile, "\tli\t$%s, %d\n", reglist[r], val);
+  fprintf(Outfile, "\tli\t%s, %d\n", reglist[r], val);
 }
 
 // Convert an integer value to a boolean value. Jump if
@@ -681,7 +691,7 @@ static char *cmplist[] =
 // Compare two registers and set if true.
 int cgcompare_and_set(int ASTop, int r1, int r2, int type) {
   int size = cgprimsize(type);
-
+  int resreg = cgallocreg();
 
   // Check the range of the AST operation
   if (ASTop < A_EQ || ASTop > A_GE)
@@ -705,11 +715,12 @@ int cgcompare_and_set(int ASTop, int r1, int r2, int type) {
     // if size == 8, no mask is needed
     // fprintf(Outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
   }
-
+  fprintf(Outfile, "\tli %s, 0\n", reglist[resreg]);
   fprintf(Outfile, "\t%s\t%s, %s, 1f\n", cmplist[ASTop - A_EQ], reglist[r1], reglist[r2]);
-  fprintf(Outfile, "\tli %s, 1\n" "1:\n", reglist[r2]);
+  fprintf(Outfile, "\tli %s, 1\n" "1:\n", reglist[resreg]);
   cgfreereg(r1);
-  return (r2);
+  cgfreereg(r2);
+  return (resreg);
 }
 
 // Generate a label
