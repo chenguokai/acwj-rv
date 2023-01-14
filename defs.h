@@ -14,7 +14,7 @@ enum {
 // Commands and default filenames
 #define AOUT "a.out"
 #define ASCMD "riscv64-linux-gnu-as -g -o "
-#define LDCMD "riscv64-linux-gnu-gcc -g -o "
+#define LDCMD "riscv64-linux-gnu-gcc --static -g -o "
 #define CPPCMD "riscv64-linux-gnu-cpp -nostdinc -isystem"
 
 // Token types
