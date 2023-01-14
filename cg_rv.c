@@ -561,7 +561,7 @@ int cgshlconst(int r, int val) {
 // Store a register's value into a variable
 int cgstorglob(int r, struct symtable *sym) {
   int addrreg = cgallocreg();
-  fprintf(Outfile, "\tla\t%s, %s\n", sym->name);
+  fprintf(Outfile, "\tla\t%s, %s\n", reglist[addrreg], sym->name);
   if (cgprimsize(sym->type) == 8) {
     fprintf(Outfile, "\tsd\t%s, (%s)\n", reglist[r], reglist[addrreg]);
   } else
