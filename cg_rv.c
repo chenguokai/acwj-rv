@@ -61,7 +61,7 @@ int cgalign(int type, int offset, int direction) {
   default:
     // Align whatever we have now on a 8-byte alignment.
     // I put the generic code here so it can be reused elsewhere.
-    alignment = 8;
+    alignment = 4;
     offset = (offset + direction * (alignment - 1)) & ~(alignment - 1);
   }
   return (offset);
@@ -225,16 +225,19 @@ void cgpreamble(char *filename) {
     "        ld a5, 16(sp)\n"
     "        ld a4, 8(sp)\n"
     "        ld a3, 0(sp)\n"
+	  "        addi sp, sp, 32\n"
 	  "        jr     a0\n"
 	  "__no:\n"
 	  "        addi a1, a1, 16\n"
     "        addi a4, a4, 1\n"
-    "        blt a3, a4, __next\n"
+    "        blt a4, a3, __next\n"
+    "        ld a0, 0(a1)\n"
     "        ld a6, 24(sp)\n"
     "        ld a5, 16(sp)\n"
     "        ld a4, 8(sp)\n"
     "        ld a3, 0(sp)\n"
-    "        ret\n");
+    "        addi sp, sp, 32\n"
+    "        jr     a0\n");
 }
 
 // Nothing to do for the end of a file
@@ -887,7 +890,7 @@ void cgswitch(int reg, int casecount, int toplabel,
   cglabel(toplabel);
   fprintf(Outfile, "\tadd\ta0, %s, zero\n", reglist[reg]);
   fprintf(Outfile, "\tla\ta1, L%d\n", label);
-  fprintf(Outfile, "\tj\t__switch\n");
+  fprintf(Outfile, "\tcall\t__switch\n");
 }
 
 // Move value between registers
