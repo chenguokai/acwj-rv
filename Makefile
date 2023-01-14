@@ -55,11 +55,11 @@ triple: cwj1
 quad: cwj2
 	size cwj[012]
 
-cwj2: cwj1 $(SRCS) $(HSRCS)
+cwj2: cwj1 $(RVSRCS) $(HSRCS)
 	./cwj1 -o cwj2 $(SRCS)
 
-cwj1: cwj0 $(SRCS) $(HSRCS)
-	./cwj0 -o cwj1 $(SRCS)
+cwj1: cwj0 $(RVSRCS) $(HSRCS)
+	./cwj0 -o cwj1 $(RVSRCS)
 
-cwj0: install $(SRCS) $(HSRCS)
-	./cwj  -o cwj0 $(SRCS)
+cwj0: install $(RVSRCS) $(HSRCS)
+	./cwj  -o cwj0 $(RVSRCS)

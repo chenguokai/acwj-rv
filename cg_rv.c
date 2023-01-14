@@ -258,8 +258,8 @@ void cgfuncpreamble(struct symtable *sym) {
 
   // Output the function start, save the %rsp and %rsp
   if (sym->class == C_GLOBAL)
-    fprintf(Outfile, "\t.text\n" "\t.balign 16, 0\n" "\t.globl\t%s\n" "\t.type\t%s, @function\n", name, name);
-  fprintf(Outfile, "%s:\n" "\taddi sp, sp, -16\n" "\tsd fp, 8(sp)\n" "\tsd ra, 0(sp)\n" "\tadd fp, sp, zero\n", name);
+    fprintf(Outfile, "\t.text\n" "\t.globl\t%s\n" "\t.type\t%s, @function\n", name, name);
+  fprintf(Outfile, "\t.balign 16, 0\n" "%s:\n" "\taddi sp, sp, -16\n" "\tsd fp, 8(sp)\n" "\tsd ra, 0(sp)\n" "\tadd fp, sp, zero\n", name);
 
   // Copy any in-register parameters to the stack, up to six of them
   // The remaining parameters are already on the stack
