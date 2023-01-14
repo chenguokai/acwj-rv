@@ -306,10 +306,11 @@ int cgloadint(int value, int type) {
 // operation is pre- or post-increment/decrement,
 // also perform this action.
 int cgloadvar(struct symtable *sym, int op) {
-  int r, postreg, resreg, offset = 1;
+  int r, tmpreg, postreg, resreg, offset = 1;
 
   // Get a new register
   r = cgallocreg();
+  tmpreg = cgallocreg();
 
   // If the symbol is a pointer, use the size
   // of the type that it points to as any
@@ -321,30 +322,29 @@ int cgloadvar(struct symtable *sym, int op) {
   if (op == A_PREDEC || op == A_POSTDEC)
     offset = -offset;
 
-  // If we have a pre-operation
-  if (op == A_PREINC || op == A_PREDEC) {
-    // Load the symbol's address
-    if (sym->class == C_LOCAL || sym->class == C_PARAM)
-      fprintf(Outfile, "\taddi\t%s, fp, %d\n", reglist[r], sym->st_posn);
-    else
-      fprintf(Outfile, "\tla\t%s, %s\n", reglist[r], sym->name);
-
-    // and change the value at that address
-    fprintf(Outfile, "\taddi\t%s, %s, %d\n", reglist[r], reglist[r], offset * sym->size);
-  }
-
-  // Now load the output register with the value
+  // Load the symbol's address
+  if (sym->class == C_LOCAL || sym->class == C_PARAM)
+    fprintf(Outfile, "\taddi\t%s, fp, %d\n", reglist[tmpreg], sym->st_posn);
+  else
+    fprintf(Outfile, "\tla\t%s, %s\n", reglist[tmpreg], sym->name);
+  // Load the value from symbol address
   switch (sym->size) {
     case 1:
       // TODO: check if lbu is right
-      fprintf(Outfile, "\tlbu\t%s, %d(fp)\n", reglist[r], sym->st_posn);
+      fprintf(Outfile, "\tlbu\t%s, (%s)\n", reglist[r], reglist[tmpreg]);
       break;
     case 4:
-      fprintf(Outfile, "\tlw\t%s, %d(fp)\n", reglist[r], sym->st_posn);
+      fprintf(Outfile, "\tlw\t%s, (%s)\n", reglist[r], reglist[tmpreg]);
       break;
     case 8:
-      fprintf(Outfile, "\tld\t%s, %d(fp)\n", reglist[r], sym->st_posn);
+      fprintf(Outfile, "\tld\t%s, (%s)\n", reglist[r], reglist[tmpreg]);
   }
+  // If we have a pre-operation
+  if (op == A_PREINC || op == A_PREDEC) {
+    // change the value
+    fprintf(Outfile, "\taddi\t%s, %s, %d\n", reglist[r], reglist[r], offset * sym->size);
+  }
+  cgfreereg(tmpreg);
 
   // If we have a post-operation, get a new register
   if (op == A_POSTINC || op == A_POSTDEC) {
@@ -370,8 +370,16 @@ int cgloadvar(struct symtable *sym, int op) {
       fprintf(Outfile, "\tld\t%s, (%s)\n", reglist[resreg], reglist[postreg]);
     }
     fprintf(Outfile, "\taddi\t%s, %s, %d\n", reglist[resreg], reglist[resreg], offset * sym->size);
-    fprintf(Outfile, "\tsd\t%s, (%s)\n", reglist[resreg], reglist[postreg]);
-
+    switch (sym->size) {
+    case 1:
+      fprintf(Outfile, "\tsb\t%s, (%s)\n", reglist[resreg], reglist[postreg]);
+      break;
+    case 4:
+      fprintf(Outfile, "\tsw\t%s, (%s)\n", reglist[resreg], reglist[postreg]);
+      break;
+    case 8:
+      fprintf(Outfile, "\tsd\t%s, (%s)\n", reglist[resreg], reglist[postreg]);
+    }
     // Finally, free the register
     cgfreereg(postreg);
     cgfreereg(resreg);
