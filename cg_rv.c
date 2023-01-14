@@ -278,16 +278,14 @@ void cgfuncpreamble(struct symtable *sym) {
 
   // Align the stack pointer to be a multiple of 16
   // less than its previous value
-  // TODO: check if still necessary
-  // stackOffset = (localOffset + 15) & ~15;
-  // fprintf(Outfile, "\taddq\t$%d,%%rsp\n", -stackOffset);
+  stackOffset = (localOffset + 15) & ~15;
+  fprintf(Outfile, "\tadd\tsp, sp, %d\n", -stackOffset);
 }
 
 // Print out a function postamble
 void cgfuncpostamble(struct symtable *sym) {
   cglabel(sym->st_endlabel);
-  // TODO: check if still necessary
-  // fprintf(Outfile, "\taddq\t$%d,%%rsp\n", stackOffset);
+  fprintf(Outfile, "\tadd\tsp, sp, %d\n", stackOffset);
   fputs("\tadd sp, fp, zero\n" "\tld fp, 8(sp)\n" "\tld ra, 0(sp)\n" "\taddi sp, sp, 16\n" "\tret\n", Outfile);
   cgfreeallregs(NOREG);
 }
