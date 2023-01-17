@@ -179,17 +179,22 @@ void cgfreereg(int reg) {
 // Spill all registers on the stack
 void cgspillregs(void) {
   int i;
-
-  for (i = 0; i < NUMFREEREGS; i++)
-    pushreg(i);
+  fprintf(Outfile, "\taddi sp, sp, %d\n", -NUMFREEREGS * 8);
+  for (i = 0; i < NUMFREEREGS; i++) {
+    fprintf(Outfile, "\tsd %s, %d(sp)\n", reglist[i], i * 8);
+  }
+    //pushreg(i);
 }
 
 // Unspill all registers from the stack
 static void cgunspillregs(void) {
   int i;
-
-  for (i = NUMFREEREGS - 1; i >= 0; i--)
-    popreg(i);
+  
+  for (i = NUMFREEREGS - 1; i >= 0; i--) {
+    fprintf(Outfile, "\tld %s, %d(sp)\n", reglist[i], i * 8);
+  }
+  fprintf(Outfile, "\taddi sp, sp, %d\n", NUMFREEREGS * 8);
+    //popreg(i);
 }
 
 // Print out the assembly preamble
