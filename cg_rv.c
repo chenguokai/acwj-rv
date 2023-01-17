@@ -176,12 +176,33 @@ void cgfreereg(int reg) {
   }
 }
 
+static int spilled[NUMFREEREGS];
+static int spilled_cnt;
+
 // Spill all registers on the stack
 void cgspillregs(void) {
   int i;
-  fprintf(Outfile, "\taddi sp, sp, %d\n", -NUMFREEREGS * 8);
+  int pushed = 0;
+  if (spilled_cnt != 0) {
+    printf("Spill may be recursive\n");
+    exit(1);
+  }
+  spilled_cnt = 0;
   for (i = 0; i < NUMFREEREGS; i++) {
-    fprintf(Outfile, "\tsd %s, %d(sp)\n", reglist[i], i * 8);
+    if (freereg[i] == 0) {
+      spilled[i] = 1;
+      ++spilled_cnt;
+    } else {
+      spilled[i] = 0;
+    }
+  }
+  fprintf(Outfile, "\taddi sp, sp, %d\n", -spilled_cnt * 8);
+  for (i = 0; i < NUMFREEREGS; i++) {
+    if (spilled[i]) {
+      fprintf(Outfile, "\tsd %s, %d(sp)\n", reglist[i], pushed * 8);
+      ++pushed;
+    }
+    
   }
     //pushreg(i);
 }
@@ -189,12 +210,21 @@ void cgspillregs(void) {
 // Unspill all registers from the stack
 static void cgunspillregs(void) {
   int i;
+  int poped = 0;
   
-  for (i = NUMFREEREGS - 1; i >= 0; i--) {
-    fprintf(Outfile, "\tld %s, %d(sp)\n", reglist[i], i * 8);
+  for (i = 0; i < NUMFREEREGS; i++) {
+    if (spilled[i]) {
+      fprintf(Outfile, "\tld %s, %d(sp)\n", reglist[i], poped * 8);
+      ++poped;
+    }
   }
-  fprintf(Outfile, "\taddi sp, sp, %d\n", NUMFREEREGS * 8);
+  fprintf(Outfile, "\taddi sp, sp, %d\n", spilled_cnt * 8);
     //popreg(i);
+  if (poped != spilled_cnt) {
+    printf("Spilled array may be corrupted\n");
+    exit(1);
+  }
+  spilled_cnt = 0;
 }
 
 // Print out the assembly preamble
