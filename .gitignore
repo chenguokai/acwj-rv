@@ -6,3 +6,5 @@ cwj
 cwjrv
 cwjarm
 tests/*.s
+a.out
+cwj*
