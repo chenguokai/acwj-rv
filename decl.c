@@ -796,7 +796,7 @@ int declaration_list(struct symtable **ctype, int class, int et1, int et2,
     if (Token.token != T_LPAREN)
       fatals("Asm called without parentheses", Text);
     tree = asmcall();
-    cgasm(tree->left->a_intvalue);
+    cgasm(tree->a_intvalue);
     // Glue any AST tree from a local declaration
     // to build a sequence of assignments to perform
     if (*gluetree == NULL)

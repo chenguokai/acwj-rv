@@ -467,7 +467,7 @@ int genAST(struct ASTnode *n, int iflabel, int looptoplabel,
   case A_CAST:
     return (leftreg);		// Not much to do
   case A_ASM:
-    cgasm(n->left->a_intvalue);
+    cgasm(n->a_intvalue);
     return (NOREG); // Nothing to do here
   default:
     fatald("Unknown AST operator", n->op);

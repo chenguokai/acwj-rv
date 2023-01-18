@@ -196,7 +196,8 @@ void cgspillregs(void) {
       spilled[i] = 0;
     }
   }
-  fprintf(Outfile, "\taddi sp, sp, %d\n", -spilled_cnt * 8);
+  if (spilled_cnt)
+    fprintf(Outfile, "\taddi sp, sp, %d\n", -spilled_cnt * 8);
   for (i = 0; i < NUMFREEREGS; i++) {
     if (spilled[i]) {
       fprintf(Outfile, "\tsd %s, %d(sp)\n", reglist[i], pushed * 8);
@@ -218,7 +219,8 @@ static void cgunspillregs(void) {
       ++poped;
     }
   }
-  fprintf(Outfile, "\taddi sp, sp, %d\n", spilled_cnt * 8);
+  if (poped)
+    fprintf(Outfile, "\taddi sp, sp, %d\n", spilled_cnt * 8);
     //popreg(i);
   if (poped != spilled_cnt) {
     printf("Spilled array may be corrupted\n");

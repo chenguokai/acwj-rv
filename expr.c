@@ -76,7 +76,7 @@ static struct ASTnode *funccall(void) {
 }
 
 struct ASTnode *asmcall(void) {
-  struct ASTnode *n, *tree;
+  struct ASTnode *n;
   int id;
   
   // Get the '('
@@ -98,9 +98,8 @@ struct ASTnode *asmcall(void) {
   }
   scan(&Token);
   rparen();
-  n = mkastleaf(A_STRLIT, pointer_to(P_CHAR), NULL, NULL, id);
-  tree = mkastunary(A_ASM, P_INT, NULL, n, NULL, 0);
-  return (tree);
+  n = mkastleaf(A_ASM, P_NONE, NULL, NULL, id);
+  return (n);
 }
 
 // Parse the index into an array and return an AST tree for it
