@@ -47,7 +47,10 @@ enum {
   T_INTLIT, T_STRLIT, T_SEMI, T_IDENT,
   T_LBRACE, T_RBRACE, T_LPAREN, T_RPAREN,
   T_LBRACKET, T_RBRACKET, T_COMMA, T_DOT,
-  T_ARROW, T_COLON
+  T_ARROW, T_COLON,
+
+  // asm keyword
+  T_ASM
 };
 
 // Token structure
@@ -70,7 +73,8 @@ enum {
   A_FUNCCALL, A_DEREF, A_ADDR, A_SCALE,				// 35
   A_PREINC, A_PREDEC, A_POSTINC, A_POSTDEC,			// 39
   A_NEGATE, A_INVERT, A_LOGNOT, A_TOBOOL, A_BREAK,		// 43
-  A_CONTINUE, A_SWITCH, A_CASE, A_DEFAULT, A_CAST		// 48
+  A_CONTINUE, A_SWITCH, A_CASE, A_DEFAULT, A_CAST,		// 48
+  A_ASM // 49
 };
 
 // Primitive types. The bottom 4 bits is an integer

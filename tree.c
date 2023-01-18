@@ -258,6 +258,9 @@ void dumpAST(struct ASTnode *n, int label, int level) {
     case A_XOR:
       fprintf(stdout, "A_XOR\n");
       return;
+    case A_ASM:
+      fprintf(stdout, "A_ASM\n");
+      return;
     default:
       fatald("Unknown dumpAST operator", n->op);
   }

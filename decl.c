@@ -64,27 +64,30 @@ int parse_type(struct symtable **ctype, int *class) {
       type = P_STRUCT;
       *ctype = composite_declaration(P_STRUCT);
       if (Token.token == T_SEMI)
-	type = -1;
+	      type = -1;
       break;
     case T_UNION:
       type = P_UNION;
       *ctype = composite_declaration(P_UNION);
       if (Token.token == T_SEMI)
-	type = -1;
+	      type = -1;
       break;
     case T_ENUM:
       type = P_INT;		// Enums are really ints
       enum_declaration();
       if (Token.token == T_SEMI)
-	type = -1;
+	      type = -1;
       break;
     case T_TYPEDEF:
       type = typedef_declaration(ctype);
       if (Token.token == T_SEMI)
-	type = -1;
+	      type = -1;
       break;
     case T_IDENT:
       type = type_of_typedef(Text, ctype);
+      break;
+    case T_ASM:
+      type = P_INT;
       break;
     default:
       fatals("Illegal type, token", Token.tokstr);
@@ -249,7 +252,7 @@ static struct symtable *scalar_declaration(char *varname, int type,
       // Ensure the expression's type matches the variable
       exprnode = modify_type(exprnode, varnode->type, varnode->ctype, 0);
       if (exprnode == NULL)
-	fatal("Incompatible expression in assignment");
+	      fatal("Incompatible expression in assignment");
 
       // Make an assignment AST tree
       *tree = mkastnode(A_ASSIGN, exprnode->type, exprnode->ctype, exprnode,
@@ -400,10 +403,10 @@ static int param_declaration_list(struct symtable *oldfuncsym,
       // has no parameters, so leave the loop.
       scan(&Peektoken);
       if (Peektoken.token == T_RPAREN) {
-	// Move the Peektoken into the Token
-	paramcnt = 0;
-	scan(&Token);
-	break;
+	      // Move the Peektoken into the Token
+	      paramcnt = 0;
+	      scan(&Token);
+	      break;
       }
     }
 
@@ -415,8 +418,8 @@ static int param_declaration_list(struct symtable *oldfuncsym,
     // Ensure the type of this parameter matches the prototype
     if (protoptr != NULL) {
       if (type != protoptr->type)
-	fatald("Type doesn't match prototype for parameter", paramcnt + 1);
-      protoptr = protoptr->next;
+	      fatald("Type doesn't match prototype for parameter", paramcnt + 1);
+        protoptr = protoptr->next;
     }
     paramcnt++;
 
@@ -786,6 +789,23 @@ int declaration_list(struct symtable **ctype, int class, int et1, int et2,
   if ((inittype = parse_type(ctype, &class)) == -1)
     return (inittype);
 
+  // if we are parsing a global asm
+  if (Token.token == T_ASM) {
+    scan(&Token);
+    // asm, check if the next token is a left parebtgesis
+    if (Token.token != T_LPAREN)
+      fatals("Asm called without parentheses", Text);
+    tree = asmcall();
+    cgasm(tree->left->a_intvalue);
+    // Glue any AST tree from a local declaration
+    // to build a sequence of assignments to perform
+    if (*gluetree == NULL)
+      *gluetree = tree;
+    else
+      *gluetree =
+	      mkastnode(A_GLUE, P_NONE, NULL, *gluetree, NULL, tree, NULL, 0);
+    return (inittype);
+  }
   // Now parse the list of symbols
   while (1) {
     // See if this symbol is a pointer
@@ -797,7 +817,7 @@ int declaration_list(struct symtable **ctype, int class, int et1, int et2,
     // We parsed a function, there is no list so leave
     if (sym->stype == S_FUNCTION) {
       if (class != C_GLOBAL && class != C_STATIC)
-	fatal("Function definition not at global level");
+	      fatal("Function definition not at global level");
       return (type);
     }
 
@@ -807,7 +827,7 @@ int declaration_list(struct symtable **ctype, int class, int et1, int et2,
       *gluetree = tree;
     else
       *gluetree =
-	mkastnode(A_GLUE, P_NONE, NULL, *gluetree, NULL, tree, NULL, 0);
+	      mkastnode(A_GLUE, P_NONE, NULL, *gluetree, NULL, tree, NULL, 0);
 
     // We are at the end of the list, leave
     if (Token.token == et1 || Token.token == et2)

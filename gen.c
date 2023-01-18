@@ -466,6 +466,9 @@ int genAST(struct ASTnode *n, int iflabel, int looptoplabel,
     return (NOREG);
   case A_CAST:
     return (leftreg);		// Not much to do
+  case A_ASM:
+    cgasm(n->left->a_intvalue);
+    return (NOREG); // Nothing to do here
   default:
     fatald("Unknown AST operator", n->op);
   }
@@ -501,4 +504,33 @@ int genprimsize(int type) {
 }
 int genalign(int type, int offset, int direction) {
   return (cgalign(type, offset, direction));
+}
+
+static char *asmglobalbuf[4096];
+static int asmglobalbufsize;
+
+static char *asmbuf;
+static int asmbufsize;
+#define ASMBUFSIZE 4096
+int genasm(char *str, int append) {
+  int slen;
+  if (!append) {
+    asmbuf = (char *)malloc(ASMBUFSIZE);
+    asmbufsize = 0;
+    asmglobalbuf[asmglobalbufsize] = asmbuf;
+  }
+  slen = strlen(str);
+  memcpy(asmbuf + asmbufsize, str, slen);
+  asmbufsize = asmbufsize + slen;
+  asmbuf[asmbufsize] = 0;
+  return (asmglobalbufsize++);
+}
+
+static char *getasm(int id) {
+  return (asmglobalbuf[id]);
+}
+
+// Output an asm
+void cgasm(int id) {
+  fprintf(Outfile, "%s", getasm(id));
 }

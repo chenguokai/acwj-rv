@@ -238,6 +238,9 @@ void cgpreamble(char *filename) {
   fprintf(Outfile, "%s", filename);
   fputc('"', Outfile);
   fputc('\n', Outfile);
+}
+// Move switch handling to the back
+void cgpostamble() {
   fprintf(Outfile,
 	  "# internal switch(expr) routine\n"
 	  "# a1 = switch table, a0 = expr\n"
@@ -273,10 +276,6 @@ void cgpreamble(char *filename) {
     "        ld a3, 0(sp)\n"
     "        addi sp, sp, 32\n"
     "        jr     a0\n");
-}
-
-// Nothing to do for the end of a file
-void cgpostamble() {
 }
 
 // Print out a function preamble

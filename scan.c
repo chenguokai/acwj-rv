@@ -243,29 +243,33 @@ static int scanident(int c, char *buf, int lim) {
 // to waste time strcmp()ing against all the keywords.
 static int keyword(char *s) {
   switch (*s) {
+    case 'a':
+      if (!strcmp(s, "asm"))
+        return (T_ASM);
+      break;
     case 'b':
       if (!strcmp(s, "break"))
-	return (T_BREAK);
+	      return (T_BREAK);
       break;
     case 'c':
       if (!strcmp(s, "case"))
-	return (T_CASE);
+	      return (T_CASE);
       if (!strcmp(s, "char"))
-	return (T_CHAR);
+	      return (T_CHAR);
       if (!strcmp(s, "continue"))
-	return (T_CONTINUE);
+	      return (T_CONTINUE);
       break;
     case 'd':
       if (!strcmp(s, "default"))
-	return (T_DEFAULT);
+	      return (T_DEFAULT);
       break;
     case 'e':
       if (!strcmp(s, "else"))
-	return (T_ELSE);
+	      return (T_ELSE);
       if (!strcmp(s, "enum"))
-	return (T_ENUM);
+	      return (T_ENUM);
       if (!strcmp(s, "extern"))
-	return (T_EXTERN);
+	      return (T_EXTERN);
       break;
     case 'f':
       if (!strcmp(s, "for"))
@@ -328,7 +332,7 @@ char *Tstring[] = {
   "case", "default", "sizeof", "static",
   "intlit", "strlit", ";", "identifier",
   "{", "}", "(", ")", "[", "]", ",", ".",
-  "->", ":"
+  "->", ":", "asm"
 };
 
 // Scan and return the next token found in the input.
@@ -356,51 +360,51 @@ int scan(struct token *t) {
       return (0);
     case '+':
       if ((c = next()) == '+') {
-	t->token = T_INC;
+	      t->token = T_INC;
       } else if (c == '=') {
-	t->token = T_ASPLUS;
+	      t->token = T_ASPLUS;
       } else {
-	putback(c);
-	t->token = T_PLUS;
+	      putback(c);
+	      t->token = T_PLUS;
       }
       break;
     case '-':
       if ((c = next()) == '-') {
-	t->token = T_DEC;
+	      t->token = T_DEC;
       } else if (c == '>') {
-	t->token = T_ARROW;
+	      t->token = T_ARROW;
       } else if (c == '=') {
-	t->token = T_ASMINUS;
+	      t->token = T_ASMINUS;
       } else if (isdigit(c)) {	// Negative int literal
-	t->intvalue = -scanint(c);
-	t->token = T_INTLIT;
+	      t->intvalue = -scanint(c);
+	      t->token = T_INTLIT;
       } else {
-	putback(c);
-	t->token = T_MINUS;
+	      putback(c);
+	      t->token = T_MINUS;
       }
       break;
     case '*':
       if ((c = next()) == '=') {
-	t->token = T_ASSTAR;
+	      t->token = T_ASSTAR;
       } else {
-	putback(c);
-	t->token = T_STAR;
+	      putback(c);
+	      t->token = T_STAR;
       }
       break;
     case '/':
       if ((c = next()) == '=') {
-	t->token = T_ASSLASH;
+	      t->token = T_ASSLASH;
       } else {
-	putback(c);
-	t->token = T_SLASH;
+	      putback(c);
+	      t->token = T_SLASH;
       }
       break;
     case '%':
       if ((c = next()) == '=') {
-	t->token = T_ASMOD;
+	      t->token = T_ASMOD;
       } else {
-	putback(c);
-	t->token = T_MOD;
+	      putback(c);
+	      t->token = T_MOD;
       }
       break;
     case ';':
@@ -444,54 +448,54 @@ int scan(struct token *t) {
       break;
     case '=':
       if ((c = next()) == '=') {
-	t->token = T_EQ;
+	      t->token = T_EQ;
       } else {
-	putback(c);
-	t->token = T_ASSIGN;
+	      putback(c);
+	      t->token = T_ASSIGN;
       }
       break;
     case '!':
       if ((c = next()) == '=') {
-	t->token = T_NE;
+	      t->token = T_NE;
       } else {
-	putback(c);
-	t->token = T_LOGNOT;
+	      putback(c);
+	      t->token = T_LOGNOT;
       }
       break;
     case '<':
       if ((c = next()) == '=') {
-	t->token = T_LE;
+	      t->token = T_LE;
       } else if (c == '<') {
-	t->token = T_LSHIFT;
+	      t->token = T_LSHIFT;
       } else {
-	putback(c);
-	t->token = T_LT;
+	      putback(c);
+	      t->token = T_LT;
       }
       break;
     case '>':
       if ((c = next()) == '=') {
-	t->token = T_GE;
+	      t->token = T_GE;
       } else if (c == '>') {
-	t->token = T_RSHIFT;
+	      t->token = T_RSHIFT;
       } else {
-	putback(c);
-	t->token = T_GT;
+	      putback(c);
+	      t->token = T_GT;
       }
       break;
     case '&':
       if ((c = next()) == '&') {
-	t->token = T_LOGAND;
+	      t->token = T_LOGAND;
       } else {
-	putback(c);
-	t->token = T_AMPER;
+	      putback(c);
+	      t->token = T_AMPER;
       }
       break;
     case '|':
       if ((c = next()) == '|') {
-	t->token = T_LOGOR;
+	      t->token = T_LOGOR;
       } else {
-	putback(c);
-	t->token = T_OR;
+	      putback(c);
+	      t->token = T_OR;
       }
       break;
     case '\'':
@@ -501,7 +505,7 @@ int scan(struct token *t) {
       t->intvalue = scanch();
       t->token = T_INTLIT;
       if (next() != '\'')
-	fatal("Expected '\\'' at end of char literal");
+	      fatal("Expected '\\'' at end of char literal");
       break;
     case '"':
       // Scan in a literal string
@@ -512,22 +516,22 @@ int scan(struct token *t) {
       // If it's a digit, scan the
       // literal integer value in
       if (isdigit(c)) {
-	t->intvalue = scanint(c);
-	t->token = T_INTLIT;
-	break;
+	      t->intvalue = scanint(c);
+	      t->token = T_INTLIT;
+	      break;
       } else if (isalpha(c) || '_' == c) {
-	// Read in a keyword or identifier
-	scanident(c, Text, TEXTLEN);
+	      // Read in a keyword or identifier
+	      scanident(c, Text, TEXTLEN);
 
-	// If it's a recognised keyword, return that token
-	if ((tokentype = keyword(Text)) != 0) {
-	  t->token = tokentype;
-	  break;
-	}
+        // If it's a recognised keyword, return that token
+	      if ((tokentype = keyword(Text)) != 0) {
+	        t->token = tokentype;
+	        break;
+	      }
 
-	// Not a recognised keyword, so it must be an identifier
-	t->token = T_IDENT;
-	break;
+	      // Not a recognised keyword, so it must be an identifier
+	      t->token = T_IDENT;
+	      break;
       }
 
       // The character isn't part of any recognised token, error

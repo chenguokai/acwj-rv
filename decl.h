@@ -1,5 +1,6 @@
 // Function prototypes for all compiler files
 // Copyright (c) 2019 Warren Toomey, GPL3
+// Copyright (c) 2023 Guokai Chen, GPL3
 
 // scan.c
 void reject_token(struct token *t);
@@ -34,6 +35,8 @@ void genglobstrend(void);
 int genprimsize(int type);
 int genalign(int type, int offset, int direction);
 void genreturn(int reg, int id);
+int genasm(char *str, int append);
+struct ASTnode *asmcall(void);
 
 // cg.c
 int cgprimsize(int type);
@@ -86,6 +89,7 @@ void cgswitch(int reg, int casecount, int toplabel,
 	      int *caselabel, int *caseval, int defaultlabel);
 void cgmove(int r1, int r2);
 void cglinenum(int line);
+void cgasm(int id);
 
 // expr.c
 struct ASTnode *expression_list(int endtoken);

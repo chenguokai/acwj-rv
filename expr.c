@@ -75,6 +75,34 @@ static struct ASTnode *funccall(void) {
   return (tree);
 }
 
+struct ASTnode *asmcall(void) {
+  struct ASTnode *n, *tree;
+  int id;
+  
+  // Get the '('
+  lparen();
+
+  id = genasm(Text, 0);
+  // Parse the assembly strings
+  while (1) {
+    scan(&Peektoken);
+    if (Peektoken.token != T_STRLIT) {
+      if (Peektoken.token == T_RPAREN) {
+        break;
+      } else {
+        fatals("Non string parameter in asm()", Text);
+      }
+    }
+    genasm(Text, 1);
+    scan(&Token); // To skip it properly
+  }
+  scan(&Token);
+  rparen();
+  n = mkastleaf(A_STRLIT, pointer_to(P_CHAR), NULL, NULL, id);
+  tree = mkastunary(A_ASM, P_INT, NULL, n, NULL, 0);
+  return (tree);
+}
+
 // Parse the index into an array and return an AST tree for it
 static struct ASTnode *array_access(struct ASTnode *left) {
   struct ASTnode *right;
@@ -294,7 +322,7 @@ static struct ASTnode *primary(int ptp) {
       // Function call, see if the next token is a left parenthesis
       scan(&Token);
       if (Token.token != T_LPAREN)
-	fatals("Function name used without parentheses", Text);
+	      fatals("Function name used without parentheses", Text);
       return (funccall());
     default:
       fatals("Identifier not a scalar or array variable", Text);
@@ -304,6 +332,13 @@ static struct ASTnode *primary(int ptp) {
 
   case T_LPAREN:
     return (paren_expression(ptp));
+  case T_ASM:
+    scan(&Token);
+    // asm, check if the next token is a left parenthesis
+    if (Token.token != T_LPAREN)
+      fatals("Asm called without parentheses", Text);
+    return (asmcall());
+    break;
 
   default:
     fatals("Expecting a primary expression, got token", Token.tokstr);
