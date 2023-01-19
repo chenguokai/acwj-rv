@@ -37,3 +37,4 @@ extern_ int O_keepasm;		// If true, keep any assembly files
 extern_ int O_assemble;		// If true, assemble the assembly files
 extern_ int O_dolink;		// If true, link the object files
 extern_ int O_verbose;		// If true, print info on compilation stages
+extern_ int O_embedded;     // If true, use embedded configuration

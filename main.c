@@ -123,7 +123,12 @@ void do_link(char *outfilename, char **objlist) {
 
   // Start with the linker command and the output file
   cptr = cmd;
-  cnt = snprintf(cptr, size, "%s %s ", LDCMD, outfilename);
+  if (O_embedded) {
+    cnt = snprintf(cptr, size, "%s %s ", EMBEDDEDLDCMD, outfilename);
+  } else {
+    cnt = snprintf(cptr, size, "%s %s ", LDCMD, outfilename);
+  }
+  
   cptr += cnt;
   size -= cnt;
 
@@ -154,6 +159,7 @@ static void usage(char *prog) {
   fprintf(stderr, "       -T dump the AST trees for each input file\n");
   fprintf(stderr, "       -M dump the symbol table for each input file\n");
   fprintf(stderr, "       -o outfile, produce the outfile executable file\n");
+  fprintf(stderr, "       -e embedded mode, generate freestanding output\n");
   exit(1);
 }
 
@@ -173,6 +179,7 @@ int main(int argc, char **argv) {
   O_keepasm = 0;
   O_assemble = 0;
   O_verbose = 0;
+  O_embedded = 0;
   O_dolink = 1;
 
   // Scan for command-line options
@@ -206,6 +213,9 @@ int main(int argc, char **argv) {
 	case 'v':
 	  O_verbose = 1;
 	  break;
+  case 'e':
+    O_embedded = 1;
+    break;
 	default:
 	  usage(argv[0]);
       }

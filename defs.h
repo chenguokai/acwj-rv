@@ -14,8 +14,10 @@ enum {
 // Commands and default filenames
 #define AOUT "a.out"
 #define ASCMD "riscv64-linux-gnu-as -g -o "
-#define LDCMD "riscv64-linux-gnu-gcc --static -g -o "
+#define LDCMD "riscv64-linux-gnu-gcc -static -g -o "
 #define CPPCMD "riscv64-linux-gnu-cpp -nostdinc -isystem"
+
+#define EMBEDDEDLDCMD "riscv64-linux-gnu-gcc -ffreestanding -nostdlib -T embedded.lds -static -g -o "
 
 // Token types
 enum {
